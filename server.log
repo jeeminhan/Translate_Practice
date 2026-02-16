@@ -1,0 +1,8 @@
+2026-02-16 16:01:56,097 - __main__ - INFO - Starting stdio MCP server
+2026-02-16 16:01:57,055 - apscheduler.scheduler - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2026-02-16 16:01:57,056 - apscheduler.scheduler - INFO - Added job "Sync all users" to job store "default"
+2026-02-16 16:01:57,056 - apscheduler.scheduler - INFO - Scheduler started
+2026-02-16 16:01:57,056 - wanikani_mcp.sync_service - INFO - Background sync service started
+2026-02-16 16:01:57,057 - __main__ - INFO - Background sync service started
+2026-02-16 16:01:57,077 - mcp.server.lowlevel.server - INFO - Processing request of type ListToolsRequest
+2026-02-16 16:01:57,077 - mcp.server.lowlevel.server - INFO - Processing request of type ListResourcesRequest
