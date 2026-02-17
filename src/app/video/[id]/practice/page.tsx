@@ -18,6 +18,8 @@ interface SegmentWithScore {
   hasEnglishRef: boolean;
   bestScore: number | null;
   attemptCount: number;
+  lastTranslation: string | null;
+  lastFeedbackJson: string | null;
 }
 
 type SegmentStatus = "unattempted" | "passed" | "failed" | "reviewed";
@@ -109,10 +111,29 @@ export default function PracticePage() {
         setSegments(data);
         // Init statuses
         const statuses: Record<string, SegmentStatus> = {};
+        const transcripts: Record<string, string> = {};
+        const scores: Record<string, ScoreResult> = {};
         for (const seg of data) {
           statuses[seg.id] = getStatus(seg);
+          if (seg.lastTranslation) {
+            transcripts[seg.id] = seg.lastTranslation;
+          }
+          if (seg.lastFeedbackJson) {
+            try {
+              scores[seg.id] = JSON.parse(seg.lastFeedbackJson);
+            } catch { /* ignore parse errors */ }
+          }
         }
         setLocalStatuses(statuses);
+        setSavedTranscripts(transcripts);
+        setSavedScores(scores);
+
+        // Restore state for the first segment
+        if (data.length > 0) {
+          const first = data[0];
+          if (transcripts[first.id]) setTranscript(transcripts[first.id]);
+          if (scores[first.id]) setScoreResult(scores[first.id]);
+        }
       });
   }, [videoId]);
 

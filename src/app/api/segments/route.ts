@@ -35,6 +35,12 @@ export async function GET(req: NextRequest) {
         attemptCount: sql<number>`(
           SELECT COUNT(*) FROM attempts a WHERE a.segment_id = segments.id
         )`,
+        lastTranslation: sql<string | null>`(
+          SELECT a.user_translation FROM attempts a WHERE a.segment_id = segments.id ORDER BY a.created_at DESC LIMIT 1
+        )`,
+        lastFeedbackJson: sql<string | null>`(
+          SELECT a.feedback_json FROM attempts a WHERE a.segment_id = segments.id ORDER BY a.created_at DESC LIMIT 1
+        )`,
       })
       .from(segments)
       .where(eq(segments.videoId, videoId))
