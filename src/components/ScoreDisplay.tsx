@@ -49,10 +49,6 @@ export default function ScoreDisplay({ result, mode }: ScoreDisplayProps) {
         </div>
       )}
 
-      <div className="border-t border-current/20 pt-3 mt-3">
-        <p className="text-xs text-gray-400 mb-1">Sample reference:</p>
-        <p className="text-sm italic">{result.referenceSample}</p>
-      </div>
     </div>
   );
 }

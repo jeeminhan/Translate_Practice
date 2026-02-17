@@ -535,12 +535,27 @@ export default function PracticePage() {
 
             <ScoreDisplay result={scoreResult} mode={feedbackMode} />
 
-            {showAnswer && currentSeg.hasEnglishRef && currentSeg.englishRef && (
+            {showAnswer && (
               <div className="bg-gray-900 border border-gray-700 rounded-lg p-4">
-                <p className="text-xs text-gray-500 mb-1">
-                  Existing reference (from subtitles):
-                </p>
-                <p className="text-gray-200">{currentSeg.englishRef}</p>
+                {currentSeg.hasEnglishRef && currentSeg.englishRef ? (
+                  <>
+                    <p className="text-xs text-gray-500 mb-1">
+                      Answer (from subtitles):
+                    </p>
+                    <p className="text-gray-200">{currentSeg.englishRef}</p>
+                    <p className="text-xs text-gray-500 mt-3 mb-1">
+                      Sample reference:
+                    </p>
+                    <p className="text-gray-400 text-sm italic">{scoreResult.referenceSample}</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-xs text-gray-500 mb-1">
+                      Sample reference:
+                    </p>
+                    <p className="text-gray-200 italic">{scoreResult.referenceSample}</p>
+                  </>
+                )}
               </div>
             )}
 
@@ -551,7 +566,7 @@ export default function PracticePage() {
               >
                 Retry
               </button>
-              {currentSeg.hasEnglishRef && !showAnswer && (
+              {!showAnswer && (
                 <button
                   onClick={() => setShowAnswer(true)}
                   className="px-4 py-2 bg-orange-900 hover:bg-orange-800 text-orange-200 rounded-md text-sm transition-colors"
