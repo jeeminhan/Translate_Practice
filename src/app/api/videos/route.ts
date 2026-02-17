@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { videos, segments, attempts } from "@/lib/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
+import { getAuthUser } from "@/lib/auth";
 
 export async function GET() {
   try {
-    const allVideos = db
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const allVideos = await db
       .select({
         id: videos.id,
         title: videos.title,
@@ -27,8 +33,8 @@ export async function GET() {
         )`,
       })
       .from(videos)
-      .orderBy(desc(videos.updatedAt))
-      .all();
+      .where(eq(videos.userId, user.id))
+      .orderBy(desc(videos.updatedAt));
 
     return NextResponse.json(allVideos);
   } catch (error) {
@@ -39,11 +45,32 @@ export async function GET() {
 
 export async function DELETE(req: NextRequest) {
   try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { id } = await req.json();
     if (!id) {
       return NextResponse.json({ error: "id is required" }, { status: 400 });
     }
-    db.delete(videos).where(eq(videos.id, id)).run();
+
+    // Ensure the video belongs to the user
+    const videoResult = await db.select().from(videos).where(eq(videos.id, id));
+    const video = videoResult[0];
+
+    if (!video || video.userId !== user.id) {
+      return NextResponse.json({ error: "Video not found" }, { status: 404 });
+    }
+
+    // Delete attempts for all segments of this video
+    const videoSegments = await db.select({ id: segments.id }).from(segments).where(eq(segments.videoId, id));
+    for (const seg of videoSegments) {
+      await db.delete(attempts).where(eq(attempts.segmentId, seg.id));
+    }
+    // Delete segments, then the video
+    await db.delete(segments).where(eq(segments.videoId, id));
+    await db.delete(videos).where(eq(videos.id, id));
     return NextResponse.json({ success: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to delete video";

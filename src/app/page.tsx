@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface VideoSummary {
@@ -21,6 +22,7 @@ function scoreColor(score: number | null): string {
 }
 
 export default function Dashboard() {
+  const router = useRouter();
   const [videos, setVideos] = useState<VideoSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [seeding, setSeeding] = useState(false);
@@ -32,9 +34,20 @@ export default function Dashboard() {
   async function loadVideos() {
     try {
       const res = await fetch("/api/videos");
+      if (!res.ok) {
+        console.error("Failed to fetch videos:", res.status);
+        setLoading(false);
+        return;
+      }
       const data = await res.json();
 
-      const demoExists = data.some((v: VideoSummary) => v.title === "[Demo] Japanese Home Appliances");
+      if (!Array.isArray(data)) {
+        console.error("Unexpected videos response:", data);
+        setLoading(false);
+        return;
+      }
+
+      const demoExists = data.some((v: VideoSummary) => v.title.startsWith("[Demo]"));
 
       if (!demoExists) {
         // Auto-seed demo if it doesn't exist (even if other videos do)
@@ -43,11 +56,16 @@ export default function Dashboard() {
         setVideos(data);
 
         try {
-          await fetch("/api/seed", { method: "POST" });
+          const seedRes = await fetch("/api/seed", { method: "POST" });
+          if (!seedRes.ok) {
+            console.error("Seed failed:", seedRes.status, await seedRes.text());
+          }
           // Re-fetch after seeding
           const res2 = await fetch("/api/videos");
-          const data2 = await res2.json();
-          setVideos(data2);
+          if (res2.ok) {
+            const data2 = await res2.json();
+            if (Array.isArray(data2)) setVideos(data2);
+          }
           setLoading(false);
         } catch (err) {
           console.error("Failed to seed demo:", err);
@@ -63,6 +81,16 @@ export default function Dashboard() {
       console.error("Failed to load videos:", error);
       setLoading(false);
     }
+  }
+
+  async function handleDeleteVideo(id: string, title: string) {
+    if (!confirm(`Delete "${title.replace("[Demo] ", "")}" and all its segments?`)) return;
+    await fetch("/api/videos", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    loadVideos();
   }
 
   const isDemo = (title: string) => title.startsWith("[Demo]");
@@ -170,6 +198,14 @@ export default function Dashboard() {
                   >
                     Review
                   </Link>
+                  <button
+                    onClick={() => handleDeleteVideo(video.id, video.title)}
+                    className="px-3 py-2 text-sm bg-gray-800 hover:bg-red-900 text-gray-400 hover:text-red-300 rounded-lg transition-colors border border-gray-700 hover:border-red-800"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
                 </div>
               </div>
             </div>

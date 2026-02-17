@@ -1,97 +1,171 @@
 /**
  * Seeds the database with a demo video for first-time users.
- * Uses a well-known Japanese learning video with clear speech.
- *
- * Video: "日本語の森" style beginner conversation
- * We use a Comprehensible Japanese video which has clear, slow speech
- * perfect for translation practice.
+ * Uses a famous Violet Evergarden scene — Violet's emotional final letter.
+ * Beautiful, clear Japanese with natural sentence pacing, perfect for translation practice.
  */
 
 import { db } from "./db";
 import { videos, segments } from "./db/schema";
 import { v4 as uuid } from "uuid";
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
-const DEMO_VIDEO_TITLE = "[Demo] Japanese Home Appliances";
-// Yuyu's Japanese Podcast - excellent for intermediate/advanced beginners
-const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=mQA6YMxkWXc";
+const DEMO_VIDEO_TITLE = "[Demo] Violet Evergarden — Violet's Final Letter";
+const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=XnseVYTF8_0";
 
 const DEMO_SEGMENTS = [
   {
-    startTime: 9.5,
-    endTime: 15.0,
-    japaneseText: "はい、皆さんこんにちは。お久しぶりです。ゆうゆうの日本語ポッドキャスト。",
-    englishRef: "Hi everyone, hello. It's been a while. This is Yuyu's Japanese Podcast.",
+    startTime: 1.751,
+    endTime: 6.464,
+    japaneseText: "たくさんの人の思いが空から降ってきます",
+    englishRef: "So many people's feelings are falling from the sky.",
   },
   {
-    startTime: 15.0,
-    endTime: 19.3,
-    japaneseText: "今回は一人でポッドキャストをやっていきたいと思います。",
-    englishRef: "This time, I'm going to be doing the podcast by myself.",
+    startTime: 8.341,
+    endTime: 10.176,
+    japaneseText: "ヴァイオレット",
+    englishRef: "Violet.",
   },
   {
-    startTime: 19.3,
-    endTime: 24.2,
-    japaneseText: "このポッドキャストでは僕のメキシコの生活だったり、",
-    englishRef: "In this podcast, I'll be talking about things like my life in Mexico...",
+    startTime: 15.432,
+    endTime: 17.017,
+    japaneseText: "少佐",
+    englishRef: "Major.",
   },
   {
-    startTime: 24.2,
-    endTime: 31.2,
-    japaneseText:
-      "メキシコや日本で感じたことをあまり深く考えないで話していけたらなぁと思っています。",
-    englishRef:
-      "I hope to talk about things I've felt in Mexico and Japan without thinking too deeply.",
+    startTime: 19.894,
+    endTime: 23.231,
+    japaneseText: "親愛なる ギルベルト少佐",
+    englishRef: "To my beloved Major Gilbert.",
   },
   {
-    startTime: 31.2,
-    endTime: 35.7,
-    japaneseText: "ということで第一回は日本の家電について話していきたいなと思います。",
-    englishRef: "And so, for the first episode, I'd like to talk about Japanese home appliances.",
+    startTime: 24.649,
+    endTime: 28.57,
+    japaneseText: "お元気ですか？ お変わりないですか？",
+    englishRef: "How are you? Are you doing well?",
+  },
+  {
+    startTime: 29.32,
+    endTime: 31.781,
+    japaneseText: "今 どこに いらっしゃいますか？",
+    englishRef: "Where are you right now?",
+  },
+  {
+    startTime: 33.033,
+    endTime: 35.827,
+    japaneseText: "困ったことはありませんか？",
+    englishRef: "I hope you are not troubled.",
+  },
+  {
+    startTime: 39.08,
+    endTime: 47.756,
+    japaneseText: "春も夏も秋も冬もいくつも季節が過ぎましたが",
+    englishRef: "Spring, summer, autumn, winter — many seasons have passed,",
+  },
+  {
+    startTime: 48.465,
+    endTime: 53.011,
+    japaneseText: "少佐のいらっしゃる季節だけが 巡ってきません",
+    englishRef: "but the season of your return has never come.",
+  },
+  {
+    startTime: 54.345,
+    endTime: 57.515,
+    japaneseText: "私 最初は分かりませんでした",
+    englishRef: "At first, I did not understand.",
+  },
+  {
+    startTime: 58.725,
+    endTime: 62.896,
+    japaneseText: "少佐のお気持ちが 何１つ 分かりませんでした",
+    englishRef: "I did not understand any of your feelings.",
+  },
+  {
+    startTime: 63.688,
+    endTime: 74.783,
+    japaneseText: "でも 少佐に頂いた この新しい人生の中で少しだけですが 感じることが できるようになったのです",
+    englishRef: "But in this new life you gave me, I have started to feel — even if just a little.",
+  },
+  {
+    startTime: 76.409,
+    endTime: 81.289,
+    japaneseText: "代筆を通して出会った方たちを通して",
+    englishRef: "Through my work as a ghostwriter, and through the people I've met.",
+  },
+  {
+    startTime: 86.169,
+    endTime: 88.713,
+    japaneseText: "私は信じています",
+    englishRef: "I believe.",
+  },
+  {
+    startTime: 90.381,
+    endTime: 94.135,
+    japaneseText: "少佐が どこかで 生きていらっしゃることを",
+    englishRef: "That you are alive somewhere, Major.",
+  },
+  {
+    startTime: 95.261,
+    endTime: 101.392,
+    japaneseText: "だから私も 生きて生きて 生きて",
+    englishRef: "So I too will live — live, and keep living.",
+  },
+  {
+    startTime: 102.018,
+    endTime: 107.524,
+    japaneseText: "その先に何があるか 分からなくてもただ 生きて",
+    englishRef: "Even if I don't know what lies ahead, I will simply live.",
+  },
+  {
+    startTime: 110.235,
+    endTime: 115.573,
+    japaneseText: "そして また会えたら こう伝えたいのです",
+    englishRef: "And if we should ever meet again, this is what I would tell you.",
+  },
+  {
+    startTime: 116.449,
+    endTime: 132.423,
+    japaneseText: "私は今 愛してるも少しは分かるのです",
+    englishRef: "I now understand — even a little — what 'I love you' means.",
   },
 ];
 
-export async function seedDemo(): Promise<string | null> {
-  // Check if demo already exists
-  const existing = db
+export async function seedDemo(userId: string): Promise<string | null> {
+  // Check if demo already exists for THIS user
+  const existing = await db
     .select()
     .from(videos)
-    .where(eq(videos.title, DEMO_VIDEO_TITLE))
-    .all();
+    .where(eq(videos.userId, userId));
 
-  if (existing.length > 0) {
-    return existing[0].id;
+  const demoVideo = existing.find(v => v.title === DEMO_VIDEO_TITLE);
+  if (demoVideo) {
+    return demoVideo.id;
   }
 
   const videoId = uuid();
-  const now = new Date().toISOString();
 
-  db.insert(videos)
+  await db.insert(videos)
     .values({
       id: videoId,
+      userId,
       title: DEMO_VIDEO_TITLE,
       sourceType: "youtube",
       sourceUrl: DEMO_VIDEO_URL,
       direction: "jp_to_en",
-      createdAt: now,
-      updatedAt: now,
-    })
-    .run();
+    });
 
-  for (let i = 0; i < DEMO_SEGMENTS.length; i++) {
-    const seg = DEMO_SEGMENTS[i];
-    db.insert(segments)
-      .values({
-        id: uuid(),
-        videoId,
-        position: i,
-        startTime: seg.startTime,
-        endTime: seg.endTime,
-        japaneseText: seg.japaneseText,
-        englishRef: seg.englishRef,
-        hasEnglishRef: true,
-      })
-      .run();
+  const segmentRecords = DEMO_SEGMENTS.map((seg, i) => ({
+    id: uuid(),
+    videoId,
+    position: i,
+    startTime: seg.startTime,
+    endTime: seg.endTime,
+    japaneseText: seg.japaneseText,
+    englishRef: seg.englishRef,
+    hasEnglishRef: true,
+  }));
+
+  if (segmentRecords.length > 0) {
+    await db.insert(segments).values(segmentRecords);
   }
 
   return videoId;

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from "next/link";
+import UserNav from "@/components/UserNav";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -69,6 +70,9 @@ export default function RootLayout({
                 >
                   EN → JP
                 </span>
+                <div className="ml-4 pl-4 border-l border-gray-800">
+                  <UserNav />
+                </div>
               </div>
             </div>
           </div>

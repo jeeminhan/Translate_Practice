@@ -83,17 +83,22 @@ export default function WordPopup({
     }
   };
 
-  // Position popup below the clicked word
-  const top = anchorRect.bottom + window.scrollY + 8;
-  const left = Math.max(8, anchorRect.left + window.scrollX - 100);
+  // Position above if not enough space below
+  const spaceBelow = window.innerHeight - anchorRect.bottom - 16;
+  const popupMaxHeight = 360;
+  const placeAbove = spaceBelow < popupMaxHeight && anchorRect.top > spaceBelow;
+  const topPos = placeAbove
+    ? anchorRect.top - popupMaxHeight - 8
+    : anchorRect.bottom + 8;
 
   return (
     <div
       ref={popupRef}
-      className="fixed z-50 w-80 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl"
+      className="fixed z-[9999] w-80 bg-gray-900 border border-gray-700 rounded-lg shadow-2xl flex flex-col"
       style={{
-        top: `${anchorRect.bottom + 8}px`,
+        top: `${Math.max(8, topPos)}px`,
         left: `${Math.min(Math.max(8, anchorRect.left - 100), window.innerWidth - 340)}px`,
+        maxHeight: `${popupMaxHeight}px`,
       }}
     >
       {/* Header */}
@@ -108,7 +113,7 @@ export default function WordPopup({
       </div>
 
       {/* Body */}
-      <div className="p-3 max-h-64 overflow-y-auto">
+      <div className="p-3 flex-1 overflow-y-auto min-h-0">
         {loading && <p className="text-gray-400 text-sm">Looking up...</p>}
         {error && <p className="text-red-400 text-sm">{error}</p>}
         {!loading && !error && results.length === 0 && (
@@ -135,21 +140,19 @@ export default function WordPopup({
       </div>
 
       {/* Save button */}
-      {results.length > 0 && (
-        <div className="p-3 border-t border-gray-800">
-          <button
-            onClick={() => handleSave(results[0])}
-            disabled={saving || saved}
-            className={`w-full px-3 py-2 text-sm rounded-md font-medium transition-colors ${
-              saved
-                ? "bg-green-900 text-green-300 cursor-default"
-                : "bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-700"
-            }`}
-          >
-            {saved ? "Saved to Vocab" : saving ? "Saving..." : "Save to Vocab"}
-          </button>
-        </div>
-      )}
+      <div className="p-3 border-t border-gray-800 flex-shrink-0">
+        <button
+          onClick={() => results.length > 0 && handleSave(results[0])}
+          disabled={loading || saving || saved || results.length === 0}
+          className={`w-full px-3 py-2 text-sm rounded-md font-medium transition-colors ${
+            saved
+              ? "bg-green-900 text-green-300 cursor-default"
+              : "bg-blue-600 hover:bg-blue-700 text-white disabled:bg-gray-700 disabled:text-gray-500"
+          }`}
+        >
+          {saved ? "Saved to Vocab" : saving ? "Saving..." : "Save to Vocab"}
+        </button>
+      </div>
     </div>
   );
 }

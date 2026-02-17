@@ -1,23 +1,17 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 import * as schema from "./schema";
-import path from "path";
-import fs from "fs";
 
-const dbPath = path.join(process.cwd(), "data", "translateio.db");
+const connectionString = process.env.DATABASE_URL;
 
-// Ensure data directory exists
-const dataDir = path.dirname(dbPath);
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+if (!connectionString) {
+  throw new Error("DATABASE_URL is not defined in environment variables");
 }
 
-const sqlite = new Database(dbPath);
+const pool = new Pool({
+  connectionString,
+  ssl: connectionString.includes("supabase.co") ? { rejectUnauthorized: false } : false,
+});
 
-// Enable WAL mode for better concurrent read performance
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-sqlite.pragma("busy_timeout = 5000");
-
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(pool, { schema });
 export { schema };
