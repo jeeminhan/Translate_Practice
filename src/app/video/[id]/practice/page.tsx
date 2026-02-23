@@ -572,7 +572,12 @@ export default function PracticePage() {
             <button
               onClick={() => {
                 setVideoEnded(false);
-                setPlaying((p) => !p);
+                if (sourceType === "audio" && audioRef.current) {
+                  if (audioRef.current.paused) audioRef.current.play();
+                  else audioRef.current.pause();
+                } else {
+                  setPlaying((p) => !p);
+                }
               }}
               className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-md text-sm transition-colors"
             >
@@ -580,16 +585,21 @@ export default function PracticePage() {
             </button>
             <button
               onClick={() => {
-                setPlaying(false);
-                setVideoEnded(false);
-                setReplayKey((k) => k + 1);
-                setTimeout(() => setPlaying(true), 50);
+                if (sourceType === "audio" && audioRef.current) {
+                  audioRef.current.currentTime = currentSeg.startTime;
+                  audioRef.current.play();
+                } else {
+                  setPlaying(false);
+                  setVideoEnded(false);
+                  setReplayKey((k) => k + 1);
+                  setTimeout(() => setPlaying(true), 50);
+                }
               }}
               className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-md text-sm transition-colors"
             >
               Replay
             </button>
-            <div className="flex items-center gap-1 ml-4">
+            {sourceType !== "audio" && <div className="flex items-center gap-1 ml-4">
               <span className="text-xs text-gray-500">Speed:</span>
               {[0.5, 0.75, 1, 1.25].map((rate) => (
                 <button
@@ -604,7 +614,7 @@ export default function PracticePage() {
                   {rate}x
                 </button>
               ))}
-            </div>
+            </div>}
             <div className="ml-auto flex items-center gap-1">
               <span className="text-xs text-gray-500">Feedback:</span>
               <button
