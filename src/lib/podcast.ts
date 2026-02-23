@@ -57,7 +57,7 @@ function extractTitle(url: string): string {
 function downloadFile(url: string, destPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const protocol = url.startsWith("https") ? https : http;
-    const file = fs.createWriteStream(destPath);
+    const file = fs.createWriteStream(destPath, { flags: "w" });
 
     const request = protocol.get(url, (response) => {
       if (
@@ -67,9 +67,11 @@ function downloadFile(url: string, destPath: string): Promise<void> {
         response.headers.location
       ) {
         file.close();
-        downloadFile(response.headers.location, destPath)
-          .then(resolve)
-          .catch(reject);
+        fs.unlink(destPath, () => {
+          downloadFile(response.headers.location!, destPath)
+            .then(resolve)
+            .catch(reject);
+        });
         return;
       }
 
@@ -173,30 +175,36 @@ If you cannot determine exact timestamps, estimate them based on speaking pace.`
       japaneseText: s.text,
     }));
 
-    // Step 5: Translate each segment to English
-    const segments: PodcastSegment[] = await Promise.all(
-      transcriptSegments.map(async (seg) => {
-        try {
-          const translationPrompt = `Translate this Japanese sentence to natural English. Return only the translation, nothing else.
+    // Step 5: Translate each segment to English (batched to avoid rate limits)
+    const TRANSLATION_BATCH_SIZE = 5;
+    const segments: PodcastSegment[] = [];
+    for (let i = 0; i < transcriptSegments.length; i += TRANSLATION_BATCH_SIZE) {
+      const batch = transcriptSegments.slice(i, i + TRANSLATION_BATCH_SIZE);
+      const batchResults = await Promise.all(
+        batch.map(async (seg) => {
+          try {
+            const translationPrompt = `Translate this Japanese sentence to natural English. Return only the translation, nothing else.
 Japanese: ${seg.japaneseText}`;
-          const translationResult = await model.generateContent(translationPrompt);
-          const englishRef = translationResult.response.text().trim() || null;
-          return {
-            startTime: seg.startTime,
-            endTime: seg.endTime,
-            japaneseText: seg.japaneseText,
-            englishRef,
-          };
-        } catch {
-          return {
-            startTime: seg.startTime,
-            endTime: seg.endTime,
-            japaneseText: seg.japaneseText,
-            englishRef: null,
-          };
-        }
-      })
-    );
+            const translationResult = await model.generateContent(translationPrompt);
+            const englishRef = translationResult.response.text().trim() || null;
+            return {
+              startTime: seg.startTime,
+              endTime: seg.endTime,
+              japaneseText: seg.japaneseText,
+              englishRef,
+            };
+          } catch {
+            return {
+              startTime: seg.startTime,
+              endTime: seg.endTime,
+              japaneseText: seg.japaneseText,
+              englishRef: null,
+            };
+          }
+        })
+      );
+      segments.push(...batchResults);
+    }
 
     return { title, segments };
   } finally {
