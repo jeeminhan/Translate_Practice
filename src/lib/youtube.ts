@@ -1,5 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
+import os from "os";
 import path from "path";
 import fs from "fs/promises";
 import { parseSRT } from "./subtitles/srt";
@@ -53,7 +54,7 @@ export async function extractSubtitles(url: string): Promise<YouTubeResult> {
   const videoId = extractVideoId(url);
   if (!videoId) throw new Error("Invalid YouTube URL");
 
-  const tmpDir = path.join(process.cwd(), "data", "tmp", videoId);
+  const tmpDir = path.join(os.tmpdir(), "translateio", videoId);
   await fs.mkdir(tmpDir, { recursive: true });
 
   try {
