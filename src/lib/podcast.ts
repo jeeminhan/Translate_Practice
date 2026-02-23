@@ -27,10 +27,11 @@ interface PodcastTranscriptResult {
 }
 
 function getMimeType(url: string): string {
-  if (url.includes(".mp3")) return "audio/mpeg";
-  if (url.includes(".m4a") || url.includes(".mp4")) return "audio/mp4";
-  if (url.includes(".webm")) return "audio/webm";
-  if (url.includes(".ogg")) return "audio/ogg";
+  const ext = extractExtension(url).toLowerCase();
+  if (ext === "mp3") return "audio/mpeg";
+  if (ext === "m4a" || ext === "mp4") return "audio/mp4";
+  if (ext === "webm") return "audio/webm";
+  if (ext === "ogg") return "audio/ogg";
   return "audio/mpeg"; // default
 }
 
@@ -54,8 +55,12 @@ function extractTitle(url: string): string {
   return lastSegment || "podcast";
 }
 
-function downloadFile(url: string, destPath: string): Promise<void> {
+function downloadFile(url: string, destPath: string, redirectsLeft = 5): Promise<void> {
   return new Promise((resolve, reject) => {
+    if (redirectsLeft === 0) {
+      reject(new Error("Too many redirects downloading audio file"));
+      return;
+    }
     const protocol = url.startsWith("https") ? https : http;
     const file = fs.createWriteStream(destPath, { flags: "w" });
 
@@ -68,7 +73,7 @@ function downloadFile(url: string, destPath: string): Promise<void> {
       ) {
         file.close();
         fs.unlink(destPath, () => {
-          downloadFile(response.headers.location!, destPath)
+          downloadFile(response.headers.location!, destPath, redirectsLeft - 1)
             .then(resolve)
             .catch(reject);
         });

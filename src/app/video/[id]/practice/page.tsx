@@ -7,7 +7,7 @@ import ScoreDisplay from "@/components/ScoreDisplay";
 import VideoPlayer from "@/components/VideoPlayer";
 import ClickableJapanese from "@/components/ClickableJapanese";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import type { ScoreResult, FeedbackMode } from "@/types";
+import type { ScoreResult, FeedbackMode, VideoSource } from "@/types";
 
 interface SegmentWithScore {
   id: string;
@@ -72,7 +72,7 @@ export default function PracticePage() {
   const [playing, setPlaying] = useState(false);
   const [playbackRate, setPlaybackRate] = useState(1);
   const [videoUrl, setVideoUrl] = useState("");
-  const [sourceType, setSourceType] = useState<string>("youtube");
+  const [sourceType, setSourceType] = useState<VideoSource>("youtube");
   const [videoEnded, setVideoEnded] = useState(false);
 
   const [replayKey, setReplayKey] = useState(0);
