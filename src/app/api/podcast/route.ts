@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { audioUrl, title: titleOverride } = await req.json();
-    if (!audioUrl) return NextResponse.json({ error: "audioUrl is required" }, { status: 400 });
+    if (!audioUrl?.trim()) return NextResponse.json({ error: "audioUrl is required" }, { status: 400 });
 
     const apiKey = process.env.GOOGLE_AI_KEY || process.env.GEMINI_API_KEY;
     if (!apiKey) return NextResponse.json({ error: "GEMINI_API_KEY is not configured" }, { status: 500 });
