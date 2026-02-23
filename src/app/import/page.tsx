@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function ImportPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"youtube" | "local">("youtube");
+  const [activeTab, setActiveTab] = useState<"youtube" | "local" | "audio">("youtube");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +18,9 @@ export default function ImportPage() {
   const [jpSubFile, setJpSubFile] = useState<File | null>(null);
   const [enSubFile, setEnSubFile] = useState<File | null>(null);
   const [localTitle, setLocalTitle] = useState("");
+
+  const [audioUrl, setAudioUrl] = useState("");
+  const [audioTitle, setAudioTitle] = useState("");
 
   async function handleYoutubeImport() {
     if (!youtubeUrl.trim()) return;
@@ -66,6 +69,26 @@ export default function ImportPage() {
         title: localTitle,
         segmentCount: data.segmentCount,
       });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Import failed");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handlePodcastImport() {
+    if (!audioUrl.trim()) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/podcast", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ audioUrl: audioUrl.trim(), title: audioTitle.trim() || undefined }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setSuccess({ videoId: data.videoId, title: data.title, segmentCount: data.segmentCount });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Import failed");
     } finally {
@@ -125,9 +148,16 @@ export default function ImportPage() {
         >
           Local Files
         </button>
-        <span className="px-4 py-2 text-sm text-gray-600 cursor-not-allowed">
-          EN → JP (Coming Soon)
-        </span>
+        <button
+          onClick={() => setActiveTab("audio")}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === "audio"
+              ? "border-blue-500 text-blue-400"
+              : "border-transparent text-gray-400 hover:text-white"
+          }`}
+        >
+          Podcast / Audio
+        </button>
       </div>
 
       {error && (
@@ -202,6 +232,44 @@ export default function ImportPage() {
             className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 rounded-lg text-sm font-medium transition-colors"
           >
             {loading ? "Importing..." : "Import Local Files"}
+          </button>
+        </div>
+      )}
+      {activeTab === "audio" && (
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">
+              Audio URL (.mp3 or .m4a)
+            </label>
+            <input
+              type="text"
+              value={audioUrl}
+              onChange={(e) => setAudioUrl(e.target.value)}
+              placeholder="https://example.com/podcast-episode.mp3"
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              Direct link to a Japanese audio or podcast file. Gemini will transcribe it automatically.
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm text-gray-400 mb-2">
+              Title (optional)
+            </label>
+            <input
+              type="text"
+              value={audioTitle}
+              onChange={(e) => setAudioTitle(e.target.value)}
+              placeholder="e.g. My Japanese Podcast Episode 1"
+              className="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+            />
+          </div>
+          <button
+            onClick={handlePodcastImport}
+            disabled={loading || !audioUrl.trim()}
+            className="w-full px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 rounded-lg text-sm font-medium transition-colors"
+          >
+            {loading ? "Transcribing audio..." : "Import Podcast / Audio"}
           </button>
         </div>
       )}
