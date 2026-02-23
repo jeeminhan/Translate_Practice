@@ -1,4 +1,4 @@
-export type VideoSource = "youtube" | "local";
+export type VideoSource = "youtube" | "local" | "audio";
 export type Direction = "jp_to_en" | "en_to_jp";
 export type FeedbackMode = "quick" | "detailed";
 export type Familiarity = "new" | "learning" | "known";
